@@ -1,4 +1,4 @@
-use binwalk::AnalysisResults;
+use binwalk::{Binwalk, ScanOptions};
 use log::{debug, error, info};
 use std::collections::VecDeque;
 use std::panic;
