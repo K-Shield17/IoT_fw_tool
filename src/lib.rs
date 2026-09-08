@@ -23,4 +23,4 @@ mod magic;
 pub mod signatures;
 pub mod structures;
 pub use binwalk::Binwalk;
-pub use binwalk::ScanOptions; 
+//pub use binwalk::ScanOptions; 
