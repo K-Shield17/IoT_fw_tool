@@ -22,4 +22,5 @@ pub mod extractors;
 mod magic;
 pub mod signatures;
 pub mod structures;
-pub use binwalk::{AnalysisResults, Binwalk, BinwalkError};
+pub use binwalk::Binwalk;
+pub use binwalk::ScanOptions; 
