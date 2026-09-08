@@ -21,6 +21,7 @@ mod signatures;
 mod structures;
 
 fn main() -> ExitCode {
+    
     // File name used when reading from stdin
     const STDIN: &str = "stdin";
 
@@ -53,38 +54,32 @@ fn main() -> ExitCode {
     // Initialize logging
     env_logger::init();
 
-    // Process command line arguments
-    let mut cliargs = cliparser::parse();
-
-    // If --list was specified, just display a list of signatures and return
-    if cliargs.list {
-        display::print_signature_list(cliargs.quiet, &magic::patterns());
-        return ExitCode::SUCCESS;
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        eprintln!("사용법: binwalk_scan <firmware.bin>");
+        return ExitCode::FAILURE;
+    }
+    let file_path = &args[1];
+     // 1. 기본 스캔
+    eprintln!("=== [1] 기본 스캔 ===");
+    if let Err(e) = run_basic_scan(file_path) {
+        eprintln!("[오류] 기본 스캔 실패: {}", e);
+        return ExitCode::FAILURE;
     }
 
-    // Set a dummy file name when reading from stdin
-    if cliargs.stdin {
-        cliargs.file_name = Some(STDIN.to_string());
+    // 2. -M 로직 (매직/시그니처 상세 분석)
+    eprintln!("\n=== [2] 매직/시그니처 상세 분석 ===");
+    if let Err(e) = run_magic_scan(file_path) {
+        eprintln!("[오류] 매직 스캔 실패: {}", e);
+        return ExitCode::FAILURE;
     }
 
-    let mut json_logger = json::JsonLogger::new(cliargs.log);
-
-    // If entropy analysis was requested, generate the entropy graph and return
-    if cliargs.entropy {
-        display::print_plain(cliargs.quiet, "Calculating file entropy...");
-
-        if let Ok(entropy_results) =
-            entropy::plot(cliargs.file_name.unwrap(), cliargs.stdin, cliargs.png)
-        {
-            // Log entropy results to JSON file, if requested
-            json_logger.log(json::JSONType::Entropy(entropy_results.clone()));
-            json_logger.close();
-
-            display::println_plain(cliargs.quiet, "done.");
-        } else {
-            panic!("Entropy analysis failed!");
-        }
-
+    // 3. -e 로직 (추출)
+    eprintln!("\n=== [3] 추출 ===");
+    if let Err(e) = run_extract(file_path) {
+        eprintln!("[오류] 추출 실패: {}", e);
+        return ExitCode::FAILURE;
+    }
         return ExitCode::SUCCESS;
     }
 
