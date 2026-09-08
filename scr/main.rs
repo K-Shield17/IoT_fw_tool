@@ -82,7 +82,38 @@ fn main() -> ExitCode {
     }
         return ExitCode::SUCCESS;
     }
+fn run_basic_scan(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut bw = Binwalk::new(ScanOptions {
+        path: file_path.into(),
+        extract: false,
+        magic: false,
+        ..Default::default()
+    });
+    bw.scan()?;
+    Ok(())
+}
 
+fn run_magic_scan(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut bw = Binwalk::new(ScanOptions {
+        path: file_path.into(),
+        extract: false,
+        magic: true,
+        ..Default::default()
+    });
+    bw.scan()?;
+    Ok(())
+}
+
+fn run_extract(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut bw = Binwalk::new(ScanOptions {
+        path: file_path.into(),
+        extract: true,
+        magic: false,
+        ..Default::default()
+    });
+    bw.scan()?;
+    Ok(())
+}
     // If extraction or data carving was requested, we need to initialize the output directory
     if cliargs.extract || cliargs.carve {
         output_directory = Some(cliargs.directory);
