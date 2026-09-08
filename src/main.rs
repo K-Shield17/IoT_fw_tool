@@ -109,11 +109,19 @@ fn run_extract(file_path: &str) -> Result<(), String> {
     
     for (id, result) in &extraction_results {
         if result.success {
-            println!("[성공] 추출됨 - 크기: {} 바이트, 출력: {} (ID: {})", 
-                     result.size, result.output_directory, id);
+            let size_str = match result.size {
+                Some(s) => format!("{} 바이트", s),
+                None => "크기 없음".to_string(),
+            };
+            println!("[성공] 추출됨 - 크기: {}, 출력: {} (ID: {})", 
+                     size_str, result.output_directory, id);
         } else {
-            println!("[실패] 추출 실패 - 크기: {} 바이트 (ID: {})", 
-                     result.size, id);
+            let size_str = match result.size {
+                Some(s) => format!("{} 바이트", s),
+                None => "크기 없음".to_string(),
+            };
+            println!("[실패] 추출 실패 - 크기: {} (ID: {})", 
+                     size_str, id);
         }
     }
     
