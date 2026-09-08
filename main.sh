@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BINWALK="./target/release/binwalk_scan"
+BINWALK="./target/release/binwalk"
 
 if [ ! -x "$BINWALK" ]; then
     echo "[오류] binwalk 바이너리가 없습니다. 'cargo build --release' 먼저 실행하세요."
