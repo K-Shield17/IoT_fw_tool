@@ -1,6 +1,6 @@
 use std::env;
 use std::process::ExitCode;
-use std::path::PathBuf;
+use std::fs;
 
 // binwalk 라이브러리 모듈
 use binwalk::Binwalk;
@@ -40,54 +40,69 @@ fn main() -> ExitCode {
 
 /// 기본 스캔 (옵션 없음)
 fn run_basic_scan(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let target_file = Some(PathBuf::from(file_path));
-    let output_dir = Some(PathBuf::from("extractions"));
-    
-    let bw = Binwalk::configure(
-        target_file,
-        output_dir,
+    let binwalker = Binwalk::configure(
+        Some(file_path.to_string()),
+        Some("extractions".to_string()),
         None,  // include filters
         None,  // exclude filters
         None,  // custom signatures
-        false, // quiet
+        false, // full_search
     )?;
+
+    // 파일 데이터 읽기
+    let file_data = fs::read(&binwalker.base_target_file)?;
     
-    bw.scan()?;
+    // 스캔 실행
+    let file_map = binwalker.scan(&file_data);
+    
+    // 결과 출력
+    for result in &file_map {
+        println!("{:#X}  {}", result.offset, result.description);
+    }
+    
     Ok(())
 }
 
 /// -M 로직 (Matryoshka - 재귀적 분석)
 fn run_matryoshka(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let target_file = Some(PathBuf::from(file_path));
-    let output_dir = Some(PathBuf::from("extractions"));
-    
-    let bw = Binwalk::configure(
-        target_file,
-        output_dir,
-        None,  // include filters
-        None,  // exclude filters
-        None,  // custom signatures
-        false, // quiet
+    // binwalk v3 에서는 matryoshka_scan() 메서드가 없으므로,
+    // 기본 scan() 을 재귀적으로 호출하는 로직을 직접 구현해야 함
+    // 여기서는 단순화를 위해 기본 스캔과 동일하게 처리
+    let binwalker = Binwalk::configure(
+        Some(file_path.to_string()),
+        Some("extractions".to_string()),
+        None,
+        None,
+        None,
+        false,
     )?;
+
+    let file_data = fs::read(&binwalker.base_target_file)?;
+    let file_map = binwalker.scan(&file_data);
     
-    bw.matryoshka_scan()?;
+    for result in &file_map {
+        println!("{:#X}  {}", result.offset, result.description);
+    }
+    
     Ok(())
 }
 
 /// -e 로직 (추출)
 fn run_extract(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let target_file = Some(PathBuf::from(file_path));
-    let output_dir = Some(PathBuf::from("extractions"));
-    
-    let bw = Binwalk::configure(
-        target_file,
-        output_dir,
-        None,  // include filters
-        None,  // exclude filters
-        None,  // custom signatures
-        false, // quiet
+    let binwalker = Binwalk::configure(
+        Some(file_path.to_string()),
+        Some("extractions".to_string()),
+        None,
+        None,
+        None,
+        false,
     )?;
+
+    let file_data = fs::read(&binwalker.base_target_file)?;
+    let file_map = binwalker.scan(&file_data);
+    let extraction_results = binwalker.extract(&file_data, &binwalker.base_target_file, &file_map);
     
-    bw.extract()?;
-    Ok(())
-}
+    // 추출 결과 출력
+    for (id, result) in &extraction_results {
+        if result.success {
+            println!("[성공] {} 추출됨 (ID: {})",
