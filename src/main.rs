@@ -1,8 +1,6 @@
 use std::env;
 use std::process::ExitCode;
 use std::fs;
-
-// binwalk 라이브러리 모듈
 use binwalk::Binwalk;
 
 fn main() -> ExitCode {
@@ -65,9 +63,6 @@ fn run_basic_scan(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 /// -M 로직 (Matryoshka - 재귀적 분석)
 fn run_matryoshka(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // binwalk v3 에서는 matryoshka_scan() 메서드가 없으므로,
-    // 기본 scan() 을 재귀적으로 호출하는 로직을 직접 구현해야 함
-    // 여기서는 단순화를 위해 기본 스캔과 동일하게 처리
     let binwalker = Binwalk::configure(
         Some(file_path.to_string()),
         Some("extractions".to_string()),
