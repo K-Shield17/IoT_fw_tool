@@ -105,4 +105,11 @@ fn run_extract(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // 추출 결과 출력
     for (id, result) in &extraction_results {
         if result.success {
-            println!("[성공] {} 추출됨 (ID: {})",
+            println!("[성공] {} 추출됨 (ID: {})", result.file_path, id);
+        } else {
+            println!("[실패] {} 추출 실패 (ID: {})", result.file_path, id);
+        }
+    }
+    
+    Ok(())
+}
